@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Savings Tracker</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body { background:#0a0a0a; color:white; font-family:sans-serif; }
+</style>
+</head>
+
+<body class="p-6">
+
+<h1 class="text-xl mb-4">Savings Tracker</h1>
+
+<input id="name" placeholder="ชื่อเป้าหมาย" class="text-black p-2 mb-2 w-full">
+<input id="target" type="number" placeholder="จำนวนเงิน" class="text-black p-2 mb-2 w-full">
+
+<button onclick="addGoal()" class="bg-white text-black px-4 py-2 mb-4">เพิ่มเป้าหมาย</button>
+
+<div id="list"></div>
+
+<script>
+let data = JSON.parse(localStorage.getItem("data") || "[]");
+
+function save(){
+  localStorage.setItem("data", JSON.stringify(data));
+  render();
+}
+
+function addGoal(){
+  let name = document.getElementById("name").value;
+  let target = parseInt(document.getElementById("target").value);
+
+  if(!name || !target) return;
+
+  data.push({
+    id: Date.now(),
+    name,
+    target,
+    saved: 0
+  });
+
+  save();
+}
+
+function deposit(id){
+  let amount = prompt("ใส่เงิน:");
+  if(!amount) return;
+
+  let g = data.find(x=>x.id==id);
+  g.saved += parseInt(amount);
+
+  save();
+}
+
+function render(){
+  let html = "";
+
+  data.forEach(g=>{
+    html += `
+    <div style="border:1px solid #333;padding:10px;margin-bottom:10px">
+      <h2>${g.name}</h2>
+      <p>${g.saved} / ${g.target} บาท</p>
+      <button onclick="deposit(${g.id})">ฝากเงิน</button>
+    </div>
+    `;
+  });
+
+  document.getElementById("list").innerHTML = html;
+}
+
+render();
+</script>
+
+</body>
+</html>
