@@ -9,19 +9,28 @@
 
 <style>
 body { background:#0a0a0a; color:white; font-family:sans-serif; }
+.card { background:#111; border:1px solid #222; border-radius:16px; padding:16px; }
+.input { background:#1a1a1a; border:1px solid #333; padding:10px; border-radius:10px; width:100%; color:white; }
+.btn { border-radius:10px; padding:10px; font-size:14px; }
 </style>
 </head>
 
-<body class="p-6">
+<body class="p-6 max-w-md mx-auto">
 
-<h1 class="text-xl mb-4">Savings Tracker</h1>
+<h1 class="text-2xl font-light mb-6 text-gray-300">Savings Tracker</h1>
 
-<input id="name" placeholder="ชื่อเป้าหมาย" class="text-black p-2 mb-2 w-full">
-<input id="target" type="number" placeholder="จำนวนเงิน" class="text-black p-2 mb-2 w-full">
+<!-- ADD -->
+<div class="card mb-4">
+  <input id="name" placeholder="ชื่อเป้าหมาย" class="input mb-2">
+  <input id="target" type="number" placeholder="จำนวนเงิน (฿)" class="input mb-3">
 
-<button onclick="addGoal()" class="bg-white text-black px-4 py-2 mb-4">เพิ่มเป้าหมาย</button>
+  <button onclick="addGoal()" class="btn bg-white text-black w-full">
+    สร้างเป้าหมาย
+  </button>
+</div>
 
-<div id="list"></div>
+<!-- LIST -->
+<div id="list" class="space-y-3"></div>
 
 <script>
 let data = JSON.parse(localStorage.getItem("data") || "[]");
@@ -32,7 +41,7 @@ function save(){
 }
 
 function addGoal(){
-  let name = document.getElementById("name").value;
+  let name = document.getElementById("name").value.trim();
   let target = parseInt(document.getElementById("target").value);
 
   if(!name || !target) return;
@@ -44,11 +53,14 @@ function addGoal(){
     saved: 0
   });
 
+  document.getElementById("name").value = "";
+  document.getElementById("target").value = "";
+
   save();
 }
 
 function deposit(id){
-  let amount = prompt("ใส่เงิน:");
+  let amount = prompt("ใส่จำนวนเงิน:");
   if(!amount) return;
 
   let g = data.find(x=>x.id==id);
@@ -57,15 +69,44 @@ function deposit(id){
   save();
 }
 
+function withdraw(id){
+  let amount = prompt("ถอนเท่าไหร่:");
+  if(!amount) return;
+
+  let g = data.find(x=>x.id==id);
+  g.saved -= parseInt(amount);
+
+  if(g.saved < 0) g.saved = 0;
+
+  save();
+}
+
 function render(){
   let html = "";
 
   data.forEach(g=>{
+    let percent = Math.min(100, (g.saved / g.target) * 100);
+
     html += `
-    <div style="border:1px solid #333;padding:10px;margin-bottom:10px">
-      <h2>${g.name}</h2>
-      <p>${g.saved} / ${g.target} บาท</p>
-      <button onclick="deposit(${g.id})">ฝากเงิน</button>
+    <div class="card">
+      <div class="flex justify-between mb-2">
+        <span>${g.name}</span>
+        <span class="text-gray-500 text-sm">${Math.round(percent)}%</span>
+      </div>
+
+      <div class="w-full bg-gray-800 h-2 rounded mb-2">
+        <div class="bg-green-500 h-2 rounded" style="width:${percent}%"></div>
+      </div>
+
+      <div class="flex justify-between text-sm text-gray-400 mb-3">
+        <span>฿${g.saved.toLocaleString()}</span>
+        <span>฿${g.target.toLocaleString()}</span>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="deposit(${g.id})" class="btn bg-green-600 w-full">ฝาก</button>
+        <button onclick="withdraw(${g.id})" class="btn bg-red-600 w-full">ถอน</button>
+      </div>
     </div>
     `;
   });
